@@ -28,6 +28,7 @@ before_deploy:
   - >
     docker run -v $PWD:/build andrewd/rust-musl /bin/sh -c
     'cd /build; cargo build --target x86_64-unknown-linux-musl --release'
+  - sudo chown -R travis:travis target
 
 deploy:
   provider: releases
