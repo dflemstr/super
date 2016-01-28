@@ -1,0 +1,4 @@
+[package]
+name = "super"
+version = "0.1.0"
+authors = ["David Flemström <dflemstr@spotify.com>"]
