@@ -28,3 +28,12 @@ before_deploy:
   - >
     docker run -v $PWD:/build andrewd/rust-musl /bin/sh -c
     'cd /build; cargo build --target x86_64-unknown-linux-musl --release'
+
+deploy:
+  provider: releases
+  api_key:
+    secure: p2oiZ06NvCIwlC0j7ogGhuCM/YAftYRO/DQ2JTsIJ7MaOwopyCeHMD2O1UJYC07kYQEb3aa8VFKQ+Gp0CzucakCrYGxBvLq0ajt6kMrGdyJDd4EO2EM7eoAG2TwBMeTsYYrStGUsHEIqHwlI0w6An3gIz/Fa4nMyRbWEbCzeCwM11uYy6XCJjINBX/RkkMYeOaJYyouJxaM+LBGXuGhnWc5jjFSmWo/gWqRGYKnJ5IV37PAQuRhOCO3I1Qt8xEX/QpiHDJYdcZdrLNJbxmYqPZlmnQAAf+AogQE65UM+9ZITk3N1DvspRFjzDmsq+mp0iRKVHW9Ty5jbBq+/9GVT7DRl9sXQoycQOf/O84PcZ4yj49Ze2F7TBmCzLoW1MltE/Sm8UC20mybGBgxWmEQ9NTVNp/06lk5C53yqRn+5nM3DKe5WA8FFEI8+Eay6XbbOd4KT+CJQrywYlKoDa9wTma7myshfB6NL7EyZNhU6sX5ffBxxxwf5+mHF1nqsKXMDuuP6XZC1LbE/CVL90uTQAJb6ENJWgQppwdIXe4+oAoIQXWIWXeZfUVt3Qd+alb8rX0oox4LWduwgEjpZdU4FcK6n47hWwg5cUoKiJsn9XSaJDatHzIkMXbtfTLDuWxiaCC1lQKhf1U4gNbj+HW2yASI7KW6IwcS0lGrHYhmqy38=
+  file: target/x86_64-unknown-linux-musl/release/super
+  on:
+    repo: dflemstr/super
+    tags: true
