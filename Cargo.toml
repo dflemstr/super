@@ -2,3 +2,6 @@
 name = "super"
 version = "0.1.2"
 authors = ["David Flemström <dflemstr@spotify.com>"]
+
+[profile.release]
+lto = true
