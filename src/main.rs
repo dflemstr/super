@@ -1,3 +1,6 @@
+#![feature(custom_derive, plugin)]
+#![plugin(serde_macros)]
+
 #[macro_use]
 extern crate clap;
 extern crate serde;
