@@ -23,10 +23,10 @@ script:
 
 before_deploy:
     # Download a musl-based toolchain to get a static binary
-  - docker pull andrewd/rust-musl
+  - docker pull dflemstr/rust-musl
     # Create an optimized release build
   - >
-    docker run -v $PWD:/build andrewd/rust-musl /bin/sh -c
+    docker run -v $PWD:/build dflemstr/rust-musl /bin/sh -c
     'cd /build; cargo build --target x86_64-unknown-linux-musl --release'
   - sudo chown -R travis:travis target
 
