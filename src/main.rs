@@ -7,7 +7,9 @@ extern crate time;
 extern crate toml;
 
 mod config;
+mod id;
 mod supervisor;
+mod supervisor_range;
 
 use std::fs;
 use std::path;
@@ -16,11 +18,27 @@ fn main() {
     let matches = parse_cli_args();
 
     let config_path = matches.value_of("CONFIG").unwrap();
-    let programs = read_config(&config_path).programs;
-    let supervisors = programs.into_iter()
-        .map(|(id, p)| supervisor::Supervisor::start(id, p));
+    let mut programs: Vec<_> =
+        read_config(&config_path).programs.into_iter().collect();
+    programs.sort_by(|&(_, ref a), &(_, ref b)|
+                     a.priority.unwrap_or(0).cmp(&b.priority.unwrap_or(0)));
+    let supervisors: Vec<_> =
+        programs.into_iter().flat_map(create_supervisor).collect();
 
-    loop {}
+    for supervisor in supervisors.iter() {
+        supervisor.start();
+    }
+
+    for supervisor in supervisors.iter().rev() {
+        supervisor.stop();
+    }
+}
+
+fn create_supervisor(elem: (String, config::Program))
+                     -> supervisor_range::SupervisorRange {
+    let (id, program) = elem;
+    let n = program.num_procs.unwrap_or(1);
+    supervisor_range::SupervisorRange::new(id, program, n)
 }
 
 fn read_config<P>(path: P) -> config::Config where P: AsRef<path::Path> {

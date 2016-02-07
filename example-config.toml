@@ -1,0 +1,6 @@
+[programs.echo]
+command = ["/usr/bin/echo", "hello"]
+num_procs = 6
+
+[programs.cat]
+command = ["/bin/cat", "/proc/cpuinfo"]

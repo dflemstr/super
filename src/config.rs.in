@@ -5,16 +5,16 @@ use serde;
 
 use time;
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Config {
     pub programs: collections::HashMap<String, Program>,
 }
 
 // Create a new type to allow for better config file syntax
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Duration(time::Duration);
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Program {
     // Roughly inspired by supervisord documentation
 
@@ -81,7 +81,7 @@ pub struct Program {
     pub directory: Option<path::PathBuf>,
 }
 
-#[derive(Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub enum AutoRestart {
     /// Always restart the program if it exits
     Always,
