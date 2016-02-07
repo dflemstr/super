@@ -1,9 +1,12 @@
 use std::collections;
+use std::fs;
 use std::path;
 
 use serde;
-
 use time;
+use toml;
+
+use error;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Config {
@@ -93,6 +96,30 @@ pub enum AutoRestart {
     OnExpected,
     /// Never restart the program.
     Never,
+}
+
+impl Config {
+    pub fn parse(string: &str) -> error::Result<Config> {
+        let mut parser = toml::Parser::new(string);
+
+        if let Some(toml) = parser.parse() {
+            let mut decoder = toml::Decoder::new(toml::Value::Table(toml));
+            let config = try!(serde::de::Deserialize::deserialize(&mut decoder));
+            Ok(config)
+        } else {
+            Err(error::Error::TOMLParse(parser.errors))
+        }
+    }
+
+    pub fn read<P>(path: P) -> error::Result<Config> where P: AsRef<path::Path> {
+        use std::io::Read;
+
+        let mut file = try!(fs::File::open(path));
+        let mut text = String::new();
+        try!(file.read_to_string(&mut text));
+
+        Config::parse(&text)
+    }
 }
 
 impl serde::Deserialize for Duration {

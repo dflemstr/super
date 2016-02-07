@@ -10,22 +10,27 @@ extern crate time;
 extern crate toml;
 
 mod config;
+mod error;
 mod id;
 mod supervisor;
-mod supervisor_range;
 
-use std::fs;
 use std::path;
 
 fn main() {
     let matches = parse_cli_args();
-
+    // .unwrap() is safe since CONFIG is required
     let config_path = matches.value_of("CONFIG").unwrap();
+
+    run(&config_path).unwrap();
+}
+
+fn run<P>(config_path: P) -> error::Result<()> where P: AsRef<path::Path> {
+    let config = try!(config::Config::read(config_path));
     let mut programs: Vec<_> =
-        read_config(&config_path).programs.into_iter().collect();
-    programs.sort_by_key(|&(_, ref a)| a.priority.unwrap_or(0));
-    let supervisors: Vec<_> =
-        programs.into_iter().flat_map(create_supervisor).collect();
+        config.programs.iter().map(|(k, v)| (k.as_str(), v)).collect();
+    programs.sort_by_key(|&(_, ref p)| p.priority.unwrap_or(0));
+
+    let supervisors = create_supervisors(&programs);
 
     for supervisor in supervisors.iter() {
         supervisor.start();
@@ -34,25 +39,27 @@ fn main() {
     for supervisor in supervisors.iter().rev() {
         supervisor.stop();
     }
+
+    Ok(())
 }
 
-fn create_supervisor(elem: (String, config::Program))
-                     -> supervisor_range::SupervisorRange {
-    let (id, program) = elem;
-    let n = program.num_procs.unwrap_or(1);
-    supervisor_range::SupervisorRange::new(id, program, n)
-}
+fn create_supervisors(programs: &[(&str, &config::Program)]) -> Vec<supervisor::Supervisor> {
+    let mut supervisors = Vec::with_capacity(programs.len());
 
-fn read_config<P>(path: P) -> config::Config where P: AsRef<path::Path> {
-    use std::io::Read;
-    use std::str::FromStr;
+    for &(key, program) in programs.iter() {
+        let num_procs = program.num_procs.unwrap_or(1);
+        for i in 1..num_procs {
+            let id = id::Id::new(
+                key.to_owned(),
+                if num_procs == 1 { None } else { Some(i) });
 
-    let mut file = fs::File::open(path).unwrap();
-    let mut data = String::new();
-    file.read_to_string(&mut data).unwrap();
+            let supervisor =
+                supervisor::Supervisor::new(id, program.clone());
+            supervisors.push(supervisor);
+        }
+    }
 
-    let mut d = toml::Decoder::new(toml::Value::from_str(&data).unwrap());
-    serde::de::Deserialize::deserialize(&mut d).unwrap()
+    supervisors
 }
 
 fn parse_cli_args<'n, 'a>() -> clap::ArgMatches<'n, 'a> {
