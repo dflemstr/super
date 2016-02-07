@@ -23,8 +23,7 @@ fn main() {
     let config_path = matches.value_of("CONFIG").unwrap();
     let mut programs: Vec<_> =
         read_config(&config_path).programs.into_iter().collect();
-    programs.sort_by(|&(_, ref a), &(_, ref b)|
-                     a.priority.unwrap_or(0).cmp(&b.priority.unwrap_or(0)));
+    programs.sort_by_key(|&(_, ref a)| a.priority.unwrap_or(0));
     let supervisors: Vec<_> =
         programs.into_iter().flat_map(create_supervisor).collect();
 
